@@ -1,0 +1,124 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>4D Energy Test</title>
+<style>
+body{font-family:Arial, sans-serif;max-width:680px;margin:20px auto;padding:20px}
+.question{margin-bottom:20px}
+button{padding:10px 16px;font-size:14px;margin-right:8px}
+.result{margin-top:20px;line-height:1.7}
+.topbar{display:flex;justify-content:space-between;align-items:center;margin-bottom:10px}
+.lang{cursor:pointer;border:1px solid #ccc;border-radius:8px;padding:6px 10px}
+</style>
+</head>
+<body>
+<div class="topbar">
+  <h2 id="title">4维能量状态测试</h2>
+  <div>
+    <button class="lang" onclick="setLang('zh')">中文</button>
+    <button class="lang" onclick="setLang('en')">EN</button>
+  </div>
+</div>
+
+<form id="quiz"></form>
+<button onclick="calculate()" id="submitBtn">提交测试</button>
+<div class="result" id="result"></div>
+
+<script>
+let lang = 'zh';
+
+const i18n = {
+  zh: {
+    title: '4维能量状态测试',
+    submit: '提交测试',
+    dims: {
+      energy: '能量流失型',
+      emotion: '情绪过载型',
+      focus: '认知涣散型',
+      drive: '低驱动力型'
+    },
+    advice: {
+      energy: '你不是懒，是长期低能量。\n- 优先睡眠\n- 减少信息干扰\n- 降低消耗',
+      emotion: '你被情绪消耗。\n- 限制负面信息\n- 记录情绪\n- 减少内耗',
+      focus: '注意力被切割。\n- 设无手机时段\n- 25分钟专注\n- 降低难度',
+      drive: '缺乏驱动系统。\n- 小目标\n- 建立反馈\n- 先行动'
+    }
+  },
+  en: {
+    title: '4D Energy State Test',
+    submit: 'Submit',
+    dims: {
+      energy: 'Low Energy Type',
+      emotion: 'Emotional Overload Type',
+      focus: 'Distracted Mind Type',
+      drive: 'Low Drive Type'
+    },
+    advice: {
+      energy: 'You are not lazy, just low energy.\n- Fix sleep\n- Reduce noise\n- Cut energy drain',
+      emotion: 'Emotion is draining you.\n- Limit negative input\n- Track triggers\n- Reduce overthinking',
+      focus: 'Attention is fragmented.\n- No-phone blocks\n- 25-min focus\n- Simpler tasks',
+      drive: 'Lack of drive system.\n- Set tiny goals\n- Build feedback\n- Act first'
+    }
+  }
+};
+
+const questions = [
+{key:'q1',dim:'energy',zh:'你早上起床的状态',en:'Your morning energy level',opts:{zh:['精力充沛','还可以','有点疲惫','非常累'],en:['Very energetic','Okay','A bit tired','Exhausted']}},
+{key:'q2',dim:'energy',zh:'你一天的体力情况',en:'Your energy during the day',opts:{zh:['稳定','偶尔累','经常累','很难撑'],en:['Stable','Sometimes tired','Often tired','Hard to sustain']}},
+{key:'q3',dim:'energy',zh:'休息后的恢复情况',en:'Recovery after rest',opts:{zh:['恢复很好','有改善','不明显','没用'],en:['Full recovery','Somewhat better','Not much','No effect']}},
+
+{key:'q4',dim:'emotion',zh:'最近情绪状态',en:'Your emotional state lately',opts:{zh:['稳定','偶尔波动','经常焦虑','长期压抑'],en:['Stable','Some swings','Often anxious','Suppressed']}},
+{key:'q5',dim:'emotion',zh:'压力下你的反应',en:'Reaction under stress',opts:{zh:['能调整','需要时间','容易陷入','很难走出'],en:['Adjust quickly','Need time','Get stuck','Hard to recover']}},
+{key:'q6',dim:'emotion',zh:'内耗情况',en:'Overthinking level',opts:{zh:['很少','偶尔','经常','几乎一直'],en:['Rarely','Sometimes','Often','Almost always']}},
+
+{key:'q7',dim:'focus',zh:'做事专注程度',en:'Focus while working',opts:{zh:['很专注','偶尔分心','经常走神','很难集中'],en:['Very focused','Sometimes distracted','Often distracted','Hard to focus']}},
+{key:'q8',dim:'focus',zh:'刷手机情况',en:'Phone usage intensity',opts:{zh:['很少刷','偶尔看看','中等强度','高强度刷'],en:['Rarely','Occasionally','Moderate','Heavy']}},
+{key:'q9',dim:'focus',zh:'拖延情况',en:'Procrastination level',opts:{zh:['几乎不拖','偶尔拖','经常拖','严重拖延'],en:['Rarely','Sometimes','Often','Severe']}},
+
+{key:'q10',dim:'drive',zh:'目标清晰度',en:'Clarity of goals',opts:{zh:['非常清晰','大致明确','比较模糊','没有方向'],en:['Very clear','Somewhat clear','Unclear','No direction']}},
+{key:'q11',dim:'drive',zh:'行动力',en:'Action level',opts:{zh:['说做就做','偶尔拖','经常拖','基本不动'],en:['Act immediately','Sometimes delay','Often delay','Rarely act']}},
+{key:'q12',dim:'drive',zh:'坚持能力',en:'Consistency',opts:{zh:['长期坚持','偶尔中断','难坚持','三分钟热度'],en:['Consistent','Occasional breaks','Hard to persist','Short-lived']}},
+];
+
+const form = document.getElementById('quiz');
+
+function render(){
+  document.getElementById('title').innerText = i18n[lang].title;
+  document.getElementById('submitBtn').innerText = i18n[lang].submit;
+  form.innerHTML = '';
+
+  questions.forEach((item,i)=>{
+    let div=document.createElement('div');
+    div.className='question';
+    div.innerHTML=`<p>${i+1}. ${lang==='zh'?item.zh:item.en}</p>`;
+    item.opts[lang].forEach((opt,j)=>{
+      div.innerHTML+=`<label><input type="radio" name="q${i}" value="${4-j}"> ${opt}</label><br>`;
+    });
+    form.appendChild(div);
+  });
+}
+
+function setLang(l){ lang = l; render(); }
+
+function calculate(){
+  let scores={energy:0,emotion:0,focus:0,drive:0};
+  questions.forEach((item,i)=>{
+    let val=document.querySelector(`input[name=q${i}]:checked`);
+    if(val){scores[item.dim]+=parseInt(val.value)}
+  });
+
+  let minDim=Object.keys(scores).reduce((a,b)=>scores[a]<scores[b]?a:b);
+
+  let result = `<h3>${i18n[lang].dims[minDim]}</h3><br>${i18n[lang].advice[minDim].replace(/\n/g,'<br>')}`;
+  document.getElementById('result').innerHTML = result;
+}
+
+render();
+</script>
+</body>
+</html>
+<p style="margin-top:30px;font-size:14px;color:#666;">
+Try it and share your result 👇
+</p>
